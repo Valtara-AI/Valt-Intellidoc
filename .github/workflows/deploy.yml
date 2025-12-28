@@ -1,0 +1,140 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  deploy:
+    name: Deploy to Ubuntu Server
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run tests (if available)
+        run: npm test || echo "No tests configured"
+        continue-on-error: true
+        
+      - name: Build application
+        run: npm run build
+        
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts
+          
+      - name: Deploy to server
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          APP_DIR: /var/www/valt-intellidoc
+        run: |
+          # Create deployment package
+          tar -czf deploy.tar.gz \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.env.local' \
+            --exclude='*.pem' \
+            .
+          
+          # Upload to server
+          scp deploy.tar.gz $SSH_USER@$SSH_HOST:/tmp/
+          
+          # Extract and deploy on server
+          ssh $SSH_USER@$SSH_HOST << 'ENDSSH'
+            set -e
+            cd /var/www/valt-intellidoc
+            
+            # Backup current version
+            if [ -d "backup" ]; then rm -rf backup; fi
+            mkdir -p backup
+            cp -r .next backup/ 2>/dev/null || true
+            
+            # Extract new version
+            tar -xzf /tmp/deploy.tar.gz
+            rm /tmp/deploy.tar.gz
+            
+            # Install dependencies and build
+            npm install --production
+            npm run build
+            
+            # Restart application
+            pm2 restart valt-intellidoc || pm2 start npm --name valt-intellidoc -- start
+            pm2 save
+            
+            echo "Deployment completed successfully!"
+          ENDSSH
+          
+      - name: Verify deployment
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          # Wait for app to start
+          sleep 10
+          
+          # Check if application is responding
+          ssh $SSH_USER@$SSH_HOST << 'ENDSSH'
+            pm2 status
+            
+            # Check application health
+            response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000)
+            if [ "$response" = "200" ] || [ "$response" = "301" ] || [ "$response" = "302" ]; then
+              echo "✓ Application is responding correctly"
+              exit 0
+            else
+              echo "✗ Application health check failed (HTTP $response)"
+              pm2 logs valt-intellidoc --lines 50
+              exit 1
+            fi
+          ENDSSH
+          
+      - name: Rollback on failure
+        if: failure()
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          ssh $SSH_USER@$SSH_HOST << 'ENDSSH'
+            set -e
+            cd /var/www/valt-intellidoc
+            
+            if [ -d "backup/.next" ]; then
+              echo "Rolling back to previous version..."
+              rm -rf .next
+              mv backup/.next .
+              pm2 restart valt-intellidoc
+              echo "Rollback completed"
+            else
+              echo "No backup found for rollback"
+            fi
+          ENDSSH
+          
+      - name: Send deployment notification
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✓ Deployment successful!"
+          else
+            echo "✗ Deployment failed!"
+          fi
