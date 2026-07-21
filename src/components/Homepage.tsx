@@ -122,23 +122,30 @@ export function Homepage({ onGetStarted }: HomepageProps) {
             Private On-Premises LLM
           </Badge>
           <h1 className="text-4xl font-medium text-foreground mb-6">
-            Enterprise Document Intelligence
+            Ask your SharePoint documents a question.
             <br />
-            <span className="text-muted-foreground">Powered by Advanced AI</span>
+            <span className="text-muted-foreground">Get an answer with the source cited.</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Transform your organization&apos;s document workflows with secure, compliant AI assistance. 
-            Built for legal professionals, compliance officers, and consultants who demand 
-            enterprise-grade security and intelligent document analysis.
+            Valt Intellidoc connects to your SharePoint repositories, indexes every document,
+            and answers questions in plain language — each response linked back to the exact
+            page it came from, with a confidence score attached. Access is scoped by role and
+            every query is logged, so legal, compliance, and consulting teams can search
+            contracts and policy files without the data ever leaving your infrastructure.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button onClick={onGetStarted} size="lg" className="flex items-center gap-2">
               Get Started
               <ArrowRight className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="lg" className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="lg"
+              className="flex items-center gap-2"
+              onClick={() => document.getElementById('security')?.scrollIntoView({ behavior: 'smooth' })}
+            >
               <Lock className="w-4 h-4" />
-              Enterprise Security
+              See Security Details
             </Button>
           </div>
         </div>
@@ -149,11 +156,11 @@ export function Homepage({ onGetStarted }: HomepageProps) {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-medium text-foreground mb-4">
-              Enterprise-Grade Capabilities
+              What It Does
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Comprehensive document intelligence with the security and compliance features 
-              your organization requires.
+              Six capabilities, all running against your own document repository —
+              nothing here is a demo of a feature that doesn&apos;t exist yet.
             </p>
           </div>
           
@@ -188,7 +195,7 @@ export function Homepage({ onGetStarted }: HomepageProps) {
               Built for Knowledge Workers
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Tailored capabilities for the professionals who drive organizational intelligence.
+              What each role actually uses the assistant for, day to day.
             </p>
           </div>
           
@@ -215,14 +222,14 @@ export function Homepage({ onGetStarted }: HomepageProps) {
       </section>
 
       {/* Security & Compliance */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
+      <section id="security" className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30 scroll-mt-16">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-medium text-foreground mb-4">
-              Security & Compliance First
+              Your Documents Stay On Your Infrastructure
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Built with enterprise security standards and regulatory compliance in mind.
+              The model runs on-premises. Nothing you upload is sent to a third-party API.
             </p>
           </div>
           
@@ -268,19 +275,21 @@ export function Homepage({ onGetStarted }: HomepageProps) {
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-medium text-foreground mb-4">
-            Ready to Transform Your Document Workflows?
+            Point It At Your Document Repository
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Experience the power of enterprise-grade document intelligence with 
-            the security and compliance your organization demands.
+            Sign in to connect a SharePoint source and start querying your own documents —
+            with citations, confidence scores, and a full audit trail from the first query.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button onClick={onGetStarted} size="lg" className="flex items-center gap-2">
               <Zap className="w-4 h-4" />
               Access Your Assistant
             </Button>
-            <Button variant="outline" size="lg">
-              Contact Enterprise Sales
+            <Button variant="outline" size="lg" asChild>
+              <a href="mailto:hello@valtara.ai?subject=Valt%20Intellidoc%20Enterprise%20Inquiry">
+                Contact Enterprise Sales
+              </a>
             </Button>
           </div>
         </div>
@@ -297,7 +306,7 @@ export function Homepage({ onGetStarted }: HomepageProps) {
               </div>
             </div>
             <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-              <span>© 2025 Valt Intellidoc</span>
+              <span>© {new Date().getFullYear()} Valt Intellidoc</span>
               <span>•</span>
               <span>Private & Secure</span>
               <span>•</span>
