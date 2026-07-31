@@ -167,7 +167,7 @@ export function SignIn({ onSignIn, onBack }: SignInProps) {
         </Card>
 
         <div className="text-center text-xs text-muted-foreground">
-          <p>© 2024 Valt Intellidoc</p>
+          <p>© {new Date().getFullYear()} Valtara Inc.</p>
           <p>This system is for authorized users only</p>
         </div>
       </div>

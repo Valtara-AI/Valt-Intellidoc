@@ -306,7 +306,7 @@ export function Homepage({ onGetStarted }: HomepageProps) {
               </div>
             </div>
             <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-              <span>© {new Date().getFullYear()} Valt Intellidoc</span>
+              <span>© {new Date().getFullYear()} Valtara Inc.</span>
               <span>•</span>
               <span>Private & Secure</span>
               <span>•</span>
